@@ -1,0 +1,145 @@
+---
+title: "Analysing the factors affect Residents’ Apartment Evaluation in Toronto"
+author: "CHENGYUE XUE 1004761484"
+date: "2020_12_20"
+output: html_document
+---
+
+
+Keywords: City government, Business, Development and Infrastructure
+
+
+Abstract:
+
+There are many factors to evaluate an apartment. In Toronto, Apartment Building Standards (ABS) use more than 33 factors to evaluation apartments. For this report, we will focus on three of those variables -- 'SECURITY','YEAR_BUILT' and 'WARD', trying to find a relationship between the overall socre of the apartment and these three variables. A linear regression model is introduced in this report to analyze the relationship between them. Some plots are shown to represent the relationship we found. We find that a higher evaluation for security of the building will lead to a higher overall score of the building. Also, relatively old apartments would have a higher score of the apartment. However, we can not conclude such assumption in the predictor 'WARD'. In order to make a further improvment on the model, the AIC method will be applied in discussion part of this report, and a better model will be shown there.
+
+
+Introduction:
+
+   This analysis is about residents' apartment evaluation in Toronto. The data is published by Municipal Licensing & Standards and is about Apartment Evaluation in Toronto. The data is collected from Apartment Building Standards (ABS), which is a bylaw enforcement group that covers buildings which have three or more storeys and ten or more units. This program aims to ensure building owners and operators comply with building maintenance standards. They will evaluate, auditing and enforcement of standards, in order to make sure Toronto residents living in a rental building have clean, safe and secure homes [1].This dataset contains building evaluation score for all evaluated buildings that are registered in the ABS program. There are 3461 observations and 13 variables in the data set originally. There are three variables noticEable -- 'SCORE','WARD', 'BUILT_YEAR' and 'SECURITY'. I’m interested in this topic because the evaluation of the house is closely related to people’s happiness. Analysing these factors will give program a close look about what factors would influence people's evaluation about their apartment. Also, help apartment managers to improve the environment of the apartment. Some models, plot and data will be applied in order to make a roughly  assumption about the relationship between above four variables and the residents' apartment evaluation. The goal of this report is find a relationship between factors 'WARD','YEAR_BUILT', 'SECURITY' and 'SCORE'.
+ 
+
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+Lucia=read.csv("Apartment Building Evaluation.csv")
+Lucia <- na.omit(Lucia)
+set.seed(1004761484)
+attach(Lucia)
+Lucia=Lucia[sample(nrow(Lucia),200),]
+```
+
+```{r}
+quantitativexy=cbind(SCORE, SECURITY, YEAR_BUILT)
+quantitativexy=na.omit(quantitativexy)
+round(cor(quantitativexy), 4)
+```
+
+
+```{r}
+plot1 = lm(SCORE~YEAR_BUILT, data=Lucia) 
+plot1 = rstandard(plot1)
+qqnorm(plot1, 
+       ylab="Standardized Residuals", 
+       xlab="Theoretical Quantiles lm(SCORE~YEAR_BUILT)", 
+       main="Plot 1 : Normal Q-Q (1484)") 
+qqline(plot1)
+```
+
+
+
+```{r}
+fullmodel <- lm(SCORE ~ YEAR_BUILT + SECURITY + WARD,
+            data=Lucia)
+summary(fullmodel)
+```
+
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(fullmodel)
+```
+
+
+Methodology:
+  
+  There are 3461 observations in the original data set. The data contains lots of NA terms, thus I used "na.omit" to delete them before we sample data. We will not consider missing value in this research. In order to analyze, 200 cases are randomly selected from the database "Apartment Building Evaluation.csv". This research is aimed to discover the research between the factors 'WARD','YEAR_BUILT', 'SECURITY' and 'SCORE'. Then, we will take a look about how 'WARD','YEAR_BUILT', 'SECURITY' influence 'SCORE'. For these four variables, 'SOCRE','SECURITY' and 'YEAR_BUILT' are numerical variables. 'WARD' is a categorical variable. They represent:
+    SCORE: the overall score of the building.
+    SECURITY: the condition of the security in a building. Scores range from 1 to 5, with 1 being               the worst condition and 5 being the best condition.
+    YEAR_BUILT: the year that the building was built in.
+    WARD: where the building located in. All data is based on the 25 ward system.
+
+  Firstly, I want to calculate the correlation between the three quantitative variables above. Then, summarized each quantitative predictor for the overall score ranked, in terms their correlation coefficient, from highest to lowest:
+
+
+ Rank 1 |Rank 2 | 
+--------|:----: |
+ SECURITY | YEAR_BUILT |
+ 0.5831 | 0.2235 |
+
+  According to the rank table above we can see that predictor 'SECURITY' has the higher correlation coefficient for score than predictor 'YEAR_BUILT', about 0.5831. The predictor 'YEAR_BUILT' is 0.2235. In order to test whether the predictor 'YEAR_BUILT' is good enough to predict 'SCORE'. A plot of the standardized residuals is introduced. See Plot 1. As the standardized residuals plot shown, residuals are not lined very well on the straight dashed line with a normally distributed, thus they deviate severely and the assumption of constant variance has been strongly violated.
+
+  Now, categorical variable is added. We will use a linear regression model to represent the relationship between the overall score of the evaluation for the apartment and the security of the building, the year of building, the ward of the building located in.The model we are using is:
+
+
+$$ Y_{SCORE} = \beta_0+\beta_1  x_{SECURITY} + \beta_2 x_{YEAR-BUILT} +\beta_3 x_{WARD}+\epsilon$$
+Where $Y$ represents the overall score of the building. Similarly, 
+$\beta_0$ represents the intercept of the model.
+$\beta_1$ coefficient represents change in overall score for every one unit increase in the security of the apartment.
+$\beta_2$ coefficient represents change in overall score for every one unit increase in the year of the building.
+$\beta_3$ coefficient represents change in overall score for every different of ward of building located in.
+
+Now,we can fit a full model for all variable. See the table for 'fullmodel'. According to this, we can conclude that the p-value for 'YEAR_BUILT' is 0.000723 (<0.05), which is significant. This represents that holding all other variables in the model fixed, for every 1 unit increase in the security of the building, on average the overall score of the building will increase by 0.12065. The T-test for 'SECURITY' is also significant -- 0 (<0.05). Therefore, holding all other variables in the model fixed, for every 1 unit increase in the security of the building, on average the overall score of the building will increase by 6.18447. There are two wards also show a significant p-value -- WAED 16 AND WARD 22. 
+
+  In order to test whether these predictors show the relationship with score good enough, four plots are created. For the first Residuals vs Fitted plot, residuals spread around the horizontal line without distinct pattern, so it is a good indication that the model does not have non-linear relationships. For the second Normal-QQ plot, residuals are roughly normally distributed and are lined well on the straight dashed line. For the third Scale-Location plot, most of residuals are spread equally along the horizontal line with no pattern. For the last Residuals vs Leverage plot, this plot help us to find influential points. There are some points out of the range which would influence the regression results. To improve this model, the AIC method will be introduced in the discussion part.
+  
+
+
+#Result:
+
+According to the linear regression model we applied and plots, data we got above, we can make an assumption that  predictor 'SECURITY' and 'YEAR_BUILT' have a strong influence on the overall buildings' score prediction. The higher the residents' evaluation of the security of the apartment, the higher the overall score for building. Old buildings have a relatively higher overall score of the building than new buildings. This result is a little surprised because we think the new built building would have a higher overall score. However, predictor 'WARD' would not be good enough in this model since only 2 of 25 wards show a significant T-test results. For further analyze this predictor, the AIC method is introduced in discussion part below.
+
+
+
+#Discuss:
+```{r}
+step(fullmodel, direction = "backward")
+```
+
+```{r}
+newmodel <- lm(SCORE ~ YEAR_BUILT + SECURITY,
+            data=Lucia)
+par(mfrow=c(2,2))
+plot(newmodel)
+```
+
+In order to further check the predictor 'WARD' and to make an improvement of the model, a backward elimination with AIC method is applied. We can see that the final modle for AIC remove the predictor 'WARD', where the final model is:
+$$ Y_{SCORE} = \beta_0+\beta_1  x_{SECURITY} + \beta_2 x_{YEAR-BUILT} $$
+Then we fit those four plots again. In the last Residuals vs Leverage plot, we found that most of the influential points are removed. Therefore, this model would better explain the overall apartment score.
+
+
+#weakness
+
+The main weakness for this analysis is too few predictors. Three predictors can be used in analyze the overall score of the building, but more predictors would make the result more accurate. Also, there are some other factors affect residents' evaluation of the apartment. Taking consider more variables would conclude a more accurate assumption.
+
+
+#Reference:
+```{r}
+citation("opendatatoronto")
+```
+
+1. [1] (2020). Apartment Building Evaluation. http://open.toronto.ca/dataset/apartment-b
+uilding-evaluation/.
+
+2. Marx Agi. "How to analyze survey data: best practices for actionable insights from survey analysis." getthematic. 2019.
+
+3. kassambara. "Frequency Graph, Density Distribution and More." sthda. 17 November, 2017.
+
+
+#Link of Github:
+
+
+
+
